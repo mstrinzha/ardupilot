@@ -45,6 +45,9 @@
 #elif defined(CONFIG_ARCH_BOARD_F4BY)
 #define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_PX4_F4BY
 #define HAL_STORAGE_SIZE            16384
+#elif defined(CONFIG_ARCH_BOARD_F4BY_MINI)
+#define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_PX4_F4BY_MINI
+#define HAL_STORAGE_SIZE            16384
 #else
 #error "Unknown PX4 board type"
 #endif
@@ -114,6 +117,10 @@
 #define HAL_PX4_HAVE_PX4IO 0
 #define HAL_BARO_MS5611_I2C_ADDR 0x77
 #define HAL_BARO_MS5611_I2C_BUS 0
+#endif
+
+#ifdef CONFIG_ARCH_BOARD_F4BY_MINI
+#define HAL_PX4_HAVE_PX4IO 0
 #endif
 
 /* default values */
