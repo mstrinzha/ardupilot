@@ -120,6 +120,7 @@
 #endif
 
 #ifdef CONFIG_ARCH_BOARD_F4BY_MINI
+#define HAL_HAVE_SAFETY_SWITCH 0
 #define HAL_PX4_HAVE_PX4IO 0
 #endif
 

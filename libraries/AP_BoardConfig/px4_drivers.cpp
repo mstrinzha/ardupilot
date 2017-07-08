@@ -62,9 +62,11 @@ void AP_BoardConfig::px4_setup_pwm()
         { 7, PWM_SERVO_MODE_3PWM1CAP, 2 },
 #if CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
         { 8, PWM_SERVO_MODE_12PWM, 0 },
-#elif defined(CONFIG_ARCH_BOARD_F4BY)
+#elif defined(CONFIG_ARCH_BOARD_F4BY) || defined(CONFIG_ARCH_BOARD_F4BY_MINI)
         { 8, PWM_SERVO_MODE_8PWM, 0 },
+#if defined(CONFIG_ARCH_BOARD_F4BY)        
         { 9, PWM_SERVO_MODE_12PWM, 0 },
+#endif
 #endif
     };
     uint8_t mode_parm = (uint8_t)px4.pwm_count.get();
@@ -220,6 +222,7 @@ bool AP_BoardConfig::px4_start_driver(main_fn_t main_function, const char *name,
     // wait for task to exit and gather status
     int status = -1;
     int ret = waitpid(pid, &status, 0);
+    printf("Wait %d %d %d\n", ret, pid, status);
     if (ret < 0)
     {
       int errcode = errno;
@@ -291,6 +294,7 @@ void AP_BoardConfig::px4_setup_drivers(void)
     case PX4_BOARD_AEROFC:
     case PX4_BOARD_PIXHAWK_PRO:
     case PX4_BOARD_F4BY:
+    case PX4_BOARD_F4BY_MINI:
         break;
     default:
         sensor_config_error("Unknown board type");
@@ -397,7 +401,7 @@ void AP_BoardConfig::px4_setup_peripherals(void)
     const char *fmu_mode = "mode_serial";
 #elif defined(CONFIG_ARCH_BOARD_AEROFC_V1)
     const char *fmu_mode = "mode_rcin";
-#elif defined(CONFIG_ARCH_BOARD_F4BY)
+#elif defined(CONFIG_ARCH_BOARD_F4BY) || defined(CONFIG_ARCH_BOARD_F4BY_MINI)
     const char *fmu_mode = "mode_pwm";
 #else
     const char *fmu_mode = "mode_pwm4";
@@ -533,6 +537,9 @@ void AP_BoardConfig::px4_autodetect(void)
 #elif defined(CONFIG_ARCH_BOARD_F4BY)
     px4.board_type.set_and_notify(PX4_BOARD_F4BY);
     hal.console->printf("Detected F4BY\n");
+#elif defined(CONFIG_ARCH_BOARD_F4BY_MINI)
+    px4.board_type.set_and_notify(PX4_BOARD_F4BY_MINI);
+    hal.console->printf("Detected F4BY_MINI\n");
 #endif
 
 }
