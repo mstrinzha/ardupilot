@@ -4,12 +4,7 @@
 # MCU class and specific type
 MCU STM32F4xx STM32F407xx
 # is not declared chibios_hwdef.py for 407 
-define def_ccm_size 64
 
-
-#default 256 NO WORK WITH DISPLAY SSD1306 CONNECTED and compass internal calibration
-#use auto calculation stack size for interrupt by os
-define PORT_INT_REQUIRED_STACK 0
 
 # board ID for firmware load
 APJ_BOARD_ID 20
@@ -25,6 +20,8 @@ USB_STRING_PRODUCT "%BOARD%"
 USB_STRING_SERIAL  "%SERIAL%"
 
 FLASH_SIZE_KB 1024
+#FLASH_RESERVE_START_KB 0
+RAM_SIZE_KB 128
 
 # crystal frequency
 OSCILLATOR_HZ 8000000
