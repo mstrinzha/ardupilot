@@ -25,6 +25,7 @@
 
 using namespace ChibiOS;
 extern const AP_HAL::HAL& hal;
+AP_HAL::OwnPtr<AP_HAL::SPIDevice> dev;
 
 // SPI mode numbers
 #define SPIDEV_MODE0    0
@@ -326,4 +327,76 @@ SPIDeviceManager::get_device(const char *name)
     return AP_HAL::OwnPtr<AP_HAL::SPIDevice>(new SPIDevice(*busp, desc));
 }
 
+void SPIDeviceManager::fillDevice() {
+	dev = hal.spi->get_device("dataflash");
+}
+
+extern "C" {
+
+
+void spiSelectArdu(SPIDriver *spip);
+void spiSendArdu(SPIDriver *spip, size_t n, const void *txbuf);
+void spiUnselectArdu(SPIDriver *spip);
+void spiIgnoreArdu(SPIDriver *spip, size_t n);
+void spiReceiveArdu(SPIDriver *spip, size_t n, void *rxbuf);
+void spiStartArdu(SPIDriver *spip, const SPIConfig *config);
+void spiStartLowArdu(SPIDriver *spip, const SPIConfig *config);
+void spiStopArdu(SPIDriver *spip);
+
+
+bool isStarted = false;
+
+void spiSelectArdu(SPIDriver *spip) {
+	if(!isStarted)
+		dev->get_semaphore()->take(0);
+	dev->set_chip_select(true);
+}
+
+void spiUnselectArdu(SPIDriver *spip) {
+	dev->set_chip_select(false);
+	if(isStarted)
+		dev->get_semaphore()->give();
+}
+void spiIgnoreArdu(SPIDriver *spip, size_t n) {
+	//palClearPad(GPIOE, 15U);
+	//uint8_t buf[32] = {0x88};
+	//dev->transfer(0, 0, buf, n);
+	spiIgnore(&SPID2, n);
+}
+void spiSendArdu(SPIDriver *spip, size_t n, const void *txbuf) {
+	//palClearPad(GPIOE, 15U);
+	//dev->transfer((const uint8_t*)txbuf, n, 0, 0);
+	spiSend(&SPID2, n, txbuf);
+}
+void spiReceiveArdu(SPIDriver *spip, size_t n, void *rxbuf) {
+	//palClearPad(GPIOE, 15U);
+	//dev->transfer(0, 0, (uint8_t*)rxbuf, n);
+	spiReceive(&SPID2, n, rxbuf);
+}
+
+
+void spiStartArdu(SPIDriver *spip, const SPIConfig *config) {
+
+	dev->set_speed(AP_HAL::Device::SPEED_HIGH);
+	if(!isStarted)
+		dev->get_semaphore()->take(0);
+	dev->set_chip_select(true);
+	isStarted = true;
+}
+
+void spiStartLowArdu(SPIDriver *spip, const SPIConfig *config) {
+	dev->set_speed(AP_HAL::Device::SPEED_LOW);
+	if(!isStarted)
+		dev->get_semaphore()->take(0);
+	dev->set_chip_select(true);
+	isStarted = true;
+}
+
+void spiStopArdu(SPIDriver *spip) {
+	dev->set_chip_select(false);
+	if(isStarted)
+		dev->get_semaphore()->give();
+	isStarted = false;
+}
+}
 #endif

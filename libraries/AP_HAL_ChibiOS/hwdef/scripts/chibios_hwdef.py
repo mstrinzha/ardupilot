@@ -313,6 +313,11 @@ def write_mcu_config(f):
         f.write('#define USE_POSIX\n\n')
         f.write('#define HAL_USE_SDC TRUE\n')
         env_vars['CHIBIOS_FATFS_FLAG'] = 'USE_FATFS=yes'
+    elif get_config('FLASH_MMC', required=False, type=int) == 1:
+        f.write('#define USE_POSIX\n\n')
+        f.write('#define HAL_USE_SDC FALSE\n')
+        f.write('#define HAL_USE_MMC_SPI TRUE\n')
+        env_vars['CHIBIOS_FATFS_FLAG'] = 'USE_FATFS=yes'
     else:
         f.write('#define HAL_USE_SDC FALSE\n')
         env_vars['CHIBIOS_FATFS_FLAG'] = 'USE_FATFS=no'

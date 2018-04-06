@@ -112,6 +112,8 @@ public:
 
     AP_HAL::OwnPtr<AP_HAL::SPIDevice> get_device(const char *name);
 
+    virtual void fillDevice();
+
 private:
     static SPIDesc device_table[];
     SPIBus *buses;

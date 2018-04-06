@@ -63,8 +63,22 @@ static Empty::RCOutput rcoutDriver;
 static ChibiOS::Scheduler schedulerInstance;
 static ChibiOS::Util utilInstance;
 static Empty::OpticalFlow opticalFlowDriver;
-#ifdef USE_POSIX
+#if HAL_USE_SDC || HAL_USE_MMC_SPI
 static FATFS SDC_FS; // FATFS object
+#endif
+
+#if HAL_USE_MMC_SPI
+/* Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).*/
+static SPIConfig hs_spicfg = {NULL, GPIOE, 15U, 0, 0};
+
+/* Low speed SPI configuration (281.250kHz, CPHA=0, CPOL=0, MSb first).*/
+static SPIConfig ls_spicfg = {NULL, GPIOE, 15U,
+                              0 | 0,
+                              0};
+
+/* MMC/SD over SPI driver configuration.*/
+static MMCConfig mmccfg = {&SPID2, &ls_spicfg, &hs_spicfg};
+MMCDriver MMCD1;
 #endif
 
 #if HAL_WITH_IO_MCU
@@ -134,6 +148,27 @@ static THD_FUNCTION(main_loop,arg)
 
     ChibiOS::Shared_DMA::init();
     
+
+#if HAL_USE_MMC_SPI
+    FRESULT err;
+    mmcObjectInit(&MMCD1);
+    mmcStart(&MMCD1, &mmccfg);
+
+    if(mmcConnect(&MMCD1) == HAL_FAILED) {
+        printf("Err: Failed to initialize SDIO!\n");
+    } else {
+        err = f_mount(&SDC_FS, "/", 1);
+        if (err != FR_OK) {
+            printf("Err: Failed to mount SD Card!\n");
+            mmcDisconnect(&MMCD1);
+        } else {
+            printf("Successfully mounted SDCard..\n");
+        }
+        //Create APM Directory
+        mkdir("/APM", 0777);
+    }
+#endif
+
     hal.uartA->begin(115200);
     hal.uartB->begin(38400);
     hal.uartC->begin(57600);
@@ -185,6 +220,7 @@ void HAL_ChibiOS::run(int argc, char * const argv[], Callbacks* callbacks) const
      * - Kernel initialization, the main() function becomes a thread and the
      *   RTOS is active.
      */
+	this->spi->fillDevice();
 
 #ifdef HAL_STDOUT_SERIAL
     //STDOUT Initialistion
@@ -202,7 +238,7 @@ void HAL_ChibiOS::run(int argc, char * const argv[], Callbacks* callbacks) const
     /*
      * Start SD Driver
      */
-#ifdef USE_POSIX
+#if HAL_USE_SDC
     FRESULT err;
     sdcStart(&SDCD1, NULL);
 
@@ -220,6 +256,7 @@ void HAL_ChibiOS::run(int argc, char * const argv[], Callbacks* callbacks) const
         mkdir("/APM", 0777);
     }
 #endif
+
     assert(callbacks);
     g_callbacks = callbacks;
 

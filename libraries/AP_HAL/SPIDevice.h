@@ -69,6 +69,8 @@ public:
 
     /* Get spi device name at @idx */
     virtual const char *get_device_name(uint8_t idx) { return nullptr; }
+
+    virtual void fillDevice() = 0;
 };
 
 }
